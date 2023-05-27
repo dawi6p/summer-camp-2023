@@ -1,4 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
+import {faker} from "@faker-js/faker";
 
 type User = {
   name: string;
@@ -18,5 +19,30 @@ export default function handler(
   req: NextApiRequest,
   res: NextApiResponse<User[]>
 ) {
-  res.status(200).json([]);
+  faker.seed(1234)
+  const users = [...new Array(105)].map(() => {
+    return {
+      name: faker.person.fullName(),
+      email: faker.internet.email(),
+      title: faker.person.jobTitle(),
+      role: faker.person.jobType(),
+    }
+  })
+  const pageCount = 10;
+  const page = req.query.page;
+
+  var p = 1;
+
+  if (typeof page === 'string') {
+    p = parseInt(page, 10);
+  }
+
+  if(p == undefined || p == null || Number.isNaN(p) || p < 1) p = 1;
+  if(p > users.length/pageCount)
+  {
+    p = Math.floor(users.length/pageCount);
+    if(users.length%pageCount != 0) p+=1;
+  }
+
+  res.status(200).json(users.slice(pageCount*(p-1), pageCount*p));
 }

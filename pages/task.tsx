@@ -1,15 +1,50 @@
+import { useQuery } from '@tanstack/react-query';
+import { useRouter } from 'next/router';
+
 export default function Task() {
   /**  TODO: Create an endpoint that returns a list of people, and use that here.
    * Use tanstack/react-query to fetch the data
    */
-  const people = [
+  const router = useRouter();
+  const page = router.query.page;
+  type User = {
+    name: string;
+    email: string;
+    title: string;
+    role: string;
+  };
+
+  if (page == undefined) {
+    return <p>Loading...</p>;
+  }
+
+  const {data, isLoading, error } = useQuery(['people'], async () =>
+    fetch('/api/people?page=' + page).then((res) => res.json())
+  );
+
+  if (isLoading) {
+    return <p>Loading...</p>;
+  }
+
+  if (error) {
+    return <p>Error while loading</p>;
+  }
+
+  var prev;
+  var next;
+  if (typeof page === 'string') {
+    prev = parseInt(page, 10) - 1;
+    next = parseInt(page, 10) + 1;
+  }
+  //const people = data;
+  /*const people = [
     {
       name: "Jane Cooper",
       email: "jane@cooper.com",
       title: "Regional Paradigm Technician",
       role: "Admin",
     },
-  ];
+  ];*/
   return (
     <div className="mx-auto max-w-7xl">
       <div className="mt-8 flow-root">
@@ -48,7 +83,7 @@ export default function Task() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-800">
-                {people.map((person) => (
+                {data.map((person : User) => (
                   <tr key={person.email}>
                     <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-white sm:pl-0">
                       {person.name}
@@ -80,13 +115,13 @@ export default function Task() {
               </div>
               <div className="flex flex-1 justify-between sm:justify-end">
                 <a
-                  href="#"
+                  href={"?page="+prev}
                   className="relative inline-flex items-center rounded-md px-3 py-2 text-sm font-semibold ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus-visible:outline-offset-0"
                 >
                   Previous
                 </a>
                 <a
-                  href="#"
+                  href={"?page="+next}
                   className="relative ml-3 inline-flex items-center rounded-md px-3 py-2 text-sm font-semibold ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus-visible:outline-offset-0"
                 >
                   Next
